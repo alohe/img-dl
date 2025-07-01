@@ -11,9 +11,6 @@ dotenv.config();
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-const validTokens = new Set();
-validTokens.add(process.env.API_SECRET);
-
 let db;
 try {
     db = new sqlite3.Database('tokens.db');

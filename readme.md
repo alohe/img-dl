@@ -23,7 +23,6 @@ npm install
 ```env
 PORT=3000
 HOST=http://localhost:3000
-API_SECRET=your-secret-key
 ```
 
 4. Start the server:
