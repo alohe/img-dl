@@ -220,7 +220,7 @@ const authMiddleware = (req, res, next) => {
     }
 };
 
-// Image download endpoint
+// Image download endpoint - requires token
 app.post('/api/save', authMiddleware, async (req, res) => {
     try {
         const { url } = req.body;
@@ -245,8 +245,8 @@ app.post('/api/save', authMiddleware, async (req, res) => {
     }
 });
 
-// UploadThing-style file serving endpoint
-app.get('/f/:id', authMiddleware, (req, res) => {
+// UploadThing-style file serving endpoint - public access
+app.get('/f/:id', (req, res) => {
     const startTime = Date.now();
 
     try {
@@ -261,14 +261,9 @@ app.get('/f/:id', authMiddleware, (req, res) => {
         // Check if directory exists
         if (!fs.existsSync(deliveryDir)) {
             const responseTime = Date.now() - startTime;
-            console.log(`Files directory not found, request completed in ${responseTime}ms for ID: ${id}, project: ${req.tokenInfo.projectName}`);
+            console.log(`Files directory not found, request completed in ${responseTime}ms for ID: ${id}`);
             return res.status(404).json({ error: 'File not found' });
         }
-
-        // Increment token usage
-        incrementTokenUsage(req.tokenInfo.token).catch(err => {
-            console.error('Error incrementing token usage for file serving:', err);
-        });
 
         // Find the file with the matching ID (without extension)
         let files;
@@ -297,23 +292,23 @@ app.get('/f/:id', authMiddleware, (req, res) => {
                 if (err) {
                     console.error('File access error:', err);
                     const responseTime = Date.now() - startTime;
-                    console.log(`File access denied, request completed in ${responseTime}ms for file: ${matchingFile}, project: ${req.tokenInfo.projectName}`);
+                    console.log(`File access denied, request completed in ${responseTime}ms for file: ${matchingFile}`);
                     return res.status(404).json({ error: 'File not found' });
                 }
 
                 const responseTime = Date.now() - startTime;
-                console.log(`File serving request completed in ${responseTime}ms for file: ${matchingFile}, project: ${req.tokenInfo.projectName}`);
+                console.log(`File serving request completed in ${responseTime}ms for file: ${matchingFile}`);
                 res.sendFile(filePath);
             });
         } else {
             const responseTime = Date.now() - startTime;
-            console.log(`File not found request completed in ${responseTime}ms for ID: ${id}, project: ${req.tokenInfo.projectName}`);
+            console.log(`File not found request completed in ${responseTime}ms for ID: ${id}`);
             res.status(404).json({ error: 'File not found' });
         }
     } catch (error) {
         console.error('Error in file serving:', error);
         const responseTime = Date.now() - startTime;
-        console.log(`Error in file serving, request completed in ${responseTime}ms, project: ${req.tokenInfo?.projectName || 'unknown'}`);
+        console.log(`Error in file serving, request completed in ${responseTime}ms`);
 
         if (error.code === 'ENOENT') {
             res.status(404).json({ error: 'File not found' });
